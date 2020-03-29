@@ -37,6 +37,8 @@ namespace PayClock
                 URL = KACHING_PATH
             };
 
+            player.controls.stop();
+
             Reset();
             SetTotalText();
 
@@ -330,11 +332,11 @@ namespace PayClock
         private void OnTick(object obj, EventArgs eventArgs)
         {
             Total += Rate * Timer.Interval / 1000 / 60 / 60;
-            SetTotalText();
             if (Total >= NextKaChing) {
                 player.controls.play();
                 NextKaChing = (int)Total / KACHING_INTERVAL * KACHING_INTERVAL + KACHING_INTERVAL;
             }
+            SetTotalText();
         }
         #endregion
 
