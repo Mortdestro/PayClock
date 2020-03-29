@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WMPLib;
 
@@ -23,7 +16,9 @@ namespace PayClock
 
         public Timer Timer { get; set; }
         public bool Running { get; set; }
+        public bool GoalMet { get; set; }
         public double Rate { get; set; }
+        public double? Goal { get; set; }
         public double Total { get; set; }
         public double NextKaChing { get; set; }
 
@@ -82,6 +77,26 @@ namespace PayClock
             {
                 buttonStartStop.Enabled = true;
                 Rate = rate;
+            }
+            else
+            {
+                buttonStartStop.Enabled = false;
+            }
+        }
+
+        private void textBoxGoal_TextChanged(object sender, EventArgs e)
+        {
+            GoalMet = false;
+
+            if (string.IsNullOrEmpty(textBoxGoal.Text.Trim()))
+            {
+                buttonStartStop.Enabled = true;
+                Goal = null;
+            }
+            else if (double.TryParse(textBoxGoal.Text, out double goal))
+            {
+                buttonStartStop.Enabled = true;
+                Goal = goal;
             }
             else
             {
@@ -290,6 +305,7 @@ namespace PayClock
         {
             // Disable controls
             textBoxRate.Enabled = false;
+            textBoxGoal.Enabled = false;
             buttonClose.Enabled = false;
             buttonSave.Enabled = false;
             buttonReset.Enabled = false;
@@ -305,6 +321,7 @@ namespace PayClock
         {
             // Enable controls
             textBoxRate.Enabled = true;
+            textBoxGoal.Enabled = true;
             buttonClose.Enabled = true;
             buttonSave.Enabled = true;
             buttonReset.Enabled = true;
@@ -322,19 +339,21 @@ namespace PayClock
 
             Rate = GetRate(entry);
             Total = GetTotal(entry);
+            Goal = null;
+            GoalMet = false;
             NextKaChing = (int)Total / KACHING_INTERVAL * KACHING_INTERVAL + KACHING_INTERVAL;
 
             textBoxRate.Text = Rate.ToString("F");
+            textBoxGoal.Text = "";
             SetTotalText();
         }
-
-
+        
         private void OnTick(object obj, EventArgs eventArgs)
         {
             Total += Rate * Timer.Interval / 1000 / 60 / 60;
-            if (Total >= NextKaChing) {
+            if (Total >= Goal && !GoalMet) {
                 player.controls.play();
-                NextKaChing = (int)Total / KACHING_INTERVAL * KACHING_INTERVAL + KACHING_INTERVAL;
+                GoalMet = true;
             }
             SetTotalText();
         }
